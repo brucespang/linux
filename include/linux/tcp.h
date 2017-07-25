@@ -292,6 +292,8 @@ struct tcp_sock {
 	u32	lost_out;	/* Lost packets			*/
 	u32	sacked_out;	/* SACK'd packets			*/
 	u32	fackets_out;	/* FACK'd packets			*/
+	u32 md_scale; /* TCP_MD_SCALE */
+	u32 ai_cnt; /* TCP_AI_CNT */
 
 	struct hrtimer	pacing_timer;
 

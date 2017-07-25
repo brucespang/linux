@@ -579,6 +579,12 @@ config TCP_CONG_SCALABLE
 	properties, though is known to have fairness issues.
 	See http://www.deneholme.net/tom/scalable/
 
+config TCP_CONG_MONTRA
+	tristate "MONTra TCP"
+	default y
+	---help---
+	MONTra is Scalable TCP with tunable parameters.
+
 config TCP_CONG_LP
 	tristate "TCP Low Priority"
 	default n

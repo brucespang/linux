@@ -2766,6 +2766,12 @@ static int do_tcp_setsockopt(struct sock *sk, int level,
 		tp->notsent_lowat = val;
 		sk->sk_write_space(sk);
 		break;
+	case TCP_AI_CNT:
+		tp->ai_cnt = val;
+		break;
+	case TCP_MD_SCALE:
+		tp->md_scale = val;
+		break;
 	default:
 		err = -ENOPROTOOPT;
 		break;
@@ -3179,6 +3185,12 @@ static int do_tcp_getsockopt(struct sock *sk, int level,
 		}
 		return 0;
 	}
+	case TCP_AI_CNT:
+		val = tp->ai_cnt;
+		break;
+	case TCP_MD_SCALE:
+		val = tp->md_scale;
+		break;
 	default:
 		return -ENOPROTOOPT;
 	}

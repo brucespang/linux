@@ -119,6 +119,8 @@ enum {
 #define TCP_FASTOPEN_CONNECT	30	/* Attempt FastOpen with connect */
 #define TCP_ULP			31	/* Attach a ULP to a TCP connection */
 #define TCP_MD5SIG_EXT		32	/* TCP MD5 Signature with extensions */
+#define TCP_AI_CNT		33	/* Additive increase parameter */
+#define TCP_MD_SCALE		34	/* Multiplicative decrease parameter */
 
 struct tcp_repair_opt {
 	__u32	opt_code;
