@@ -283,6 +283,44 @@ TRACE_EVENT(tcp_probe,
 		  __entry->srtt, __entry->rcv_wnd, __entry->sock_cookie)
 );
 
+TRACE_EVENT(tcp_ca_state_change,
+
+            TP_PROTO(struct sock *sk),
+
+            TP_ARGS(sk),
+
+            TP_STRUCT__entry(
+              /* sockaddr_in6 is always bigger than sockaddr_in */
+              __array(__u8, saddr, sizeof(struct sockaddr_in6))
+              __array(__u8, daddr, sizeof(struct sockaddr_in6))
+              __field(__u16, sport)
+              __field(__u16, dport)
+              __field(__u8, state)
+              ),
+
+            TP_fast_assign(
+              const struct tcphdr *th = (const struct tcphdr *)skb->data;
+              const struct inet_sock *inet = inet_sk(sk);
+              const struct tcp_sock *tp = tcp_sk(sk);
+
+              memset(__entry->saddr, 0, sizeof(struct sockaddr_in6));
+              memset(__entry->daddr, 0, sizeof(struct sockaddr_in6));
+
+              TP_STORE_ADDR_PORTS(__entry, inet, sk);
+
+              __entry->sport = ntohs(inet->inet_sport);
+              __entry->dport = ntohs(inet->inet_dport);
+
+              __entry->state = icsk->icsk_ca_state;
+              ),
+
+            TP_printk("sport=%hu dport=%hu saddr=%pISpc daddr=%pISpc state=%d",
+                      __entry->sport, __entry->dport,
+                      __entry->saddr, __entry->daddr,
+                      __entry->state)
+  );
+
+
 #endif /* _TRACE_TCP_H */
 
 /* This part must be outside protection */
