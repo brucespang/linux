@@ -299,9 +299,8 @@ TRACE_EVENT(tcp_ca_state_change,
               ),
 
             TP_fast_assign(
-              const struct tcphdr *th = (const struct tcphdr *)skb->data;
               const struct inet_sock *inet = inet_sk(sk);
-              const struct tcp_sock *tp = tcp_sk(sk);
+              struct inet_connection_sock *icsk = inet_csk(sk);
 
               memset(__entry->saddr, 0, sizeof(struct sockaddr_in6));
               memset(__entry->daddr, 0, sizeof(struct sockaddr_in6));
