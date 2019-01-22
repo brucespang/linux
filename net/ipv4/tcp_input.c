@@ -2336,6 +2336,7 @@ static void tcp_undo_cwnd_reduction(struct sock *sk, bool unmark_loss)
 	if (tp->prior_ssthresh) {
 		const struct inet_connection_sock *icsk = inet_csk(sk);
 
+    tcp_ca_event(sk, CA_EVENT_UNDO_CWR);
 		tp->snd_cwnd = icsk->icsk_ca_ops->undo_cwnd(sk);
 
 		if (tp->prior_ssthresh > tp->snd_ssthresh) {
@@ -2440,6 +2441,8 @@ static void tcp_init_cwnd_reduction(struct sock *sk)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 
+  tcp_ca_event(sk, CA_EVENT_INIT_CWR);
+  
 	tp->high_seq = tp->snd_nxt;
 	tp->tlp_high_seq = 0;
 	tp->snd_cwnd_cnt = 0;
@@ -2475,6 +2478,8 @@ void tcp_cwnd_reduction(struct sock *sk, int newly_acked_sacked, int flag)
 	/* Force a fast retransmit upon entering fast recovery */
 	sndcnt = max(sndcnt, (tp->prr_out ? 0 : 1));
 	tp->snd_cwnd = tcp_packets_in_flight(tp) + sndcnt;
+
+  tcp_ca_event(sk, CA_EVENT_CWR);
 }
 
 static inline void tcp_end_cwnd_reduction(struct sock *sk)
@@ -2565,6 +2570,8 @@ static void tcp_mtup_probe_success(struct sock *sk)
 	icsk->icsk_mtup.probe_size = 0;
 	tcp_sync_mss(sk, icsk->icsk_pmtu_cookie);
 	NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPMTUPSUCCESS);
+  
+  tcp_ca_event(sk, CA_EVENT_MTU_PROBE_SUCCESS);
 }
 
 /* Do a simple retransmit without using the backoff mechanisms in

@@ -303,12 +303,19 @@ struct tcp_zerocopy_receive {
 
 /* Events passed to congestion control interface */
 enum tcp_ca_event {
-	CA_EVENT_TX_START,	/* first transmit when no packets in flight */
-	CA_EVENT_CWND_RESTART,	/* congestion window restart */
-	CA_EVENT_COMPLETE_CWR,	/* end of congestion recovery */
-	CA_EVENT_LOSS,		/* loss timeout */
-	CA_EVENT_ECN_NO_CE,	/* ECT set, but not CE marked */
-	CA_EVENT_ECN_IS_CE,	/* received CE marked IP packet */
+	CA_EVENT_TX_START,	/* 0: first transmit when no packets in flight */
+	CA_EVENT_CWND_RESTART,	/* 1: congestion window restart */
+	CA_EVENT_COMPLETE_CWR,	/* 2: end of congestion recovery */
+	CA_EVENT_LOSS,		/* 3: loss timeout */
+	CA_EVENT_ECN_NO_CE,	/* 4: ECT set, but not CE marked */
+	CA_EVENT_ECN_IS_CE,	/* 5: received CE marked IP packet */
+	CA_EVENT_CWR,	/* 6: doing a cwnd reduction */
+	CA_EVENT_SLOW_START,	/* 7: in slow start */
+	CA_EVENT_APP_LIMITED,	/* 8: application limited */
+	CA_EVENT_INIT_CWR,	/* 9: undoing a cwnd reduction */
+	CA_EVENT_UNDO_CWR,	/* 10: undoing a cwnd reduction */
+	CA_EVENT_MTU_PROBE_SUCCESS,	/* 11: received an MTU probe  */
+	CA_EVENT_METRICS_INIT,	/* 12: initialized tcp_metrics (this can change snd_cwnd)  */
 };
 
 #endif /* _UAPI_LINUX_TCP_H */

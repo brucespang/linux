@@ -1596,13 +1596,15 @@ unsigned int tcp_current_mss(struct sock *sk)
 static void tcp_cwnd_application_limited(struct sock *sk)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
-
+  
 	if (inet_csk(sk)->icsk_ca_state == TCP_CA_Open &&
 	    sk->sk_socket && !test_bit(SOCK_NOSPACE, &sk->sk_socket->flags)) {
 		/* Limited by application or receiver window. */
 		u32 init_win = tcp_init_cwnd(tp, __sk_dst_get(sk));
 		u32 win_used = max(tp->snd_cwnd_used, init_win);
 		if (win_used < tp->snd_cwnd) {
+      tcp_ca_event(sk, CA_EVENT_APP_LIMITED);
+
 			tp->snd_ssthresh = tcp_current_ssthresh(sk);
 			tp->snd_cwnd = (tp->snd_cwnd + win_used) >> 1;
 		}
@@ -2914,6 +2916,7 @@ int __tcp_retransmit_skb(struct sock *sk, struct sk_buff *skb, int segs)
 		__NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPSYNRETRANS);
 	tp->total_retrans += segs;
 	tp->bytes_retrans += skb->len;
+  trace_tcp_retransmit_skb(sk, skb);
 
 	/* make sure skb->data is aligned on arches that require it
 	 * and check if ack-trimming & collapsing extended the headroom
@@ -2943,7 +2946,6 @@ int __tcp_retransmit_skb(struct sock *sk, struct sk_buff *skb, int segs)
 
 	if (likely(!err)) {
 		TCP_SKB_CB(skb)->sacked |= TCPCB_EVER_RETRANS;
-		trace_tcp_retransmit_skb(sk, skb);
 	} else if (err != -EBUSY) {
 		NET_ADD_STATS(sock_net(sk), LINUX_MIB_TCPRETRANSFAIL, segs);
 	}

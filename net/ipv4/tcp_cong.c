@@ -15,6 +15,7 @@
 #include <linux/gfp.h>
 #include <linux/jhash.h>
 #include <net/tcp.h>
+#include <trace/events/tcp.h>
 
 static DEFINE_SPINLOCK(tcp_cong_list_lock);
 static LIST_HEAD(tcp_cong_list);
@@ -397,6 +398,8 @@ u32 tcp_slow_start(struct tcp_sock *tp, u32 acked)
 	acked -= cwnd - tp->snd_cwnd;
 	tp->snd_cwnd = min(cwnd, tp->snd_cwnd_clamp);
 
+  trace_tcp_ca_event((struct sock*)tp, CA_EVENT_SLOW_START);
+  
 	return acked;
 }
 EXPORT_SYMBOL_GPL(tcp_slow_start);
