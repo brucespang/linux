@@ -300,4 +300,15 @@ struct tcp_zerocopy_receive {
 	__u32 length;		/* in/out: number of bytes to map/mapped */
 	__u32 recv_skip_hint;	/* out: amount of bytes to skip */
 };
+
+/* Events passed to congestion control interface */
+enum tcp_ca_event {
+	CA_EVENT_TX_START,	/* first transmit when no packets in flight */
+	CA_EVENT_CWND_RESTART,	/* congestion window restart */
+	CA_EVENT_COMPLETE_CWR,	/* end of congestion recovery */
+	CA_EVENT_LOSS,		/* loss timeout */
+	CA_EVENT_ECN_NO_CE,	/* ECT set, but not CE marked */
+	CA_EVENT_ECN_IS_CE,	/* received CE marked IP packet */
+};
+
 #endif /* _UAPI_LINUX_TCP_H */

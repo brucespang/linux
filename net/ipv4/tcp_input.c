@@ -1991,7 +1991,6 @@ void tcp_enter_loss(struct sock *sk)
 		tp->reordering = min_t(unsigned int, tp->reordering,
 				       net->ipv4.sysctl_tcp_reordering);
 	tcp_set_ca_state(sk, TCP_CA_Loss);
-  trace_tcp_ca_state_change(sk);
   
 	tp->high_seq = tp->snd_nxt;
 	tcp_ecn_queue_cwr(tp);
@@ -2385,7 +2384,6 @@ static bool tcp_try_undo_recovery(struct sock *sk)
 		return true;
 	}
 	tcp_set_ca_state(sk, TCP_CA_Open);
-  trace_tcp_ca_state_change(sk);
 	tp->is_sack_reneg = 0;
 	return false;
 }
@@ -2422,7 +2420,6 @@ static bool tcp_try_undo_loss(struct sock *sk, bool frto_undo)
 		inet_csk(sk)->icsk_retransmits = 0;
 		if (frto_undo || tcp_is_sack(tp)) {
 			tcp_set_ca_state(sk, TCP_CA_Open);
-      trace_tcp_ca_state_change(sk);
 			tp->is_sack_reneg = 0;
 		}
 		return true;
@@ -2506,7 +2503,6 @@ void tcp_enter_cwr(struct sock *sk)
 		tp->undo_marker = 0;
 		tcp_init_cwnd_reduction(sk);
 		tcp_set_ca_state(sk, TCP_CA_CWR);
-    trace_tcp_ca_state_change(sk);
 	}
 }
 EXPORT_SYMBOL(tcp_enter_cwr);
@@ -2521,7 +2517,6 @@ static void tcp_try_keep_open(struct sock *sk)
 
 	if (inet_csk(sk)->icsk_ca_state != state) {
 		tcp_set_ca_state(sk, state);
-    trace_tcp_ca_state_change(sk);
 		tp->high_seq = tp->snd_nxt;
 	}
 }
@@ -2615,7 +2610,6 @@ void tcp_simple_retransmit(struct sock *sk)
 		tp->prior_ssthresh = 0;
 		tp->undo_marker = 0;
 		tcp_set_ca_state(sk, TCP_CA_Loss);
-    trace_tcp_ca_state_change(sk);
 	}
 	tcp_xmit_retransmit_queue(sk);
 }
@@ -2642,7 +2636,6 @@ void tcp_enter_recovery(struct sock *sk, bool ece_ack)
 		tcp_init_cwnd_reduction(sk);
 	}
 	tcp_set_ca_state(sk, TCP_CA_Recovery);
-  trace_tcp_ca_state_change(sk);
 }
 
 /* Process an ACK in CA_Loss state. Move to CA_Open if lost data are
@@ -2807,7 +2800,6 @@ static void tcp_fastretrans_alert(struct sock *sk, const u32 prior_snd_una,
 			if (tp->snd_una != tp->high_seq) {
 				tcp_end_cwnd_reduction(sk);
 				tcp_set_ca_state(sk, TCP_CA_Open);
-        trace_tcp_ca_state_change(sk);
 			}
 			break;
 
@@ -3507,7 +3499,6 @@ static void tcp_process_tlp_ack(struct sock *sk, u32 ack, int flag)
 		 */
 		tcp_init_cwnd_reduction(sk);
 		tcp_set_ca_state(sk, TCP_CA_CWR);
-    trace_tcp_ca_state_change(sk);
 		tcp_end_cwnd_reduction(sk);
 		tcp_try_keep_open(sk);
 		NET_INC_STATS(sock_net(sk),
@@ -5507,7 +5498,7 @@ void tcp_rcv_established(struct sock *sk, struct sk_buff *skb)
 	unsigned int len = skb->len;
 
 	/* TCP congestion window tracking */
-	trace_tcp_probe(sk, skb);
+	trace_tcp_probe(sk, skb, tcp_current_ssthresh(sk));
 
 	tcp_mstamp_refresh(tp);
 	if (unlikely(!sk->sk_rx_dst))

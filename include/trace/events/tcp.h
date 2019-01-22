@@ -9,7 +9,6 @@
 #include <linux/tcp.h>
 #include <linux/tracepoint.h>
 #include <net/ipv6.h>
-#include <net/tcp.h>
 #include <linux/sock_diag.h>
 
 #define TP_STORE_V4MAPPED(__entry, saddr, daddr)		\
@@ -228,60 +227,60 @@ TRACE_EVENT(tcp_retransmit_synack,
 
 TRACE_EVENT(tcp_probe,
 
-	TP_PROTO(struct sock *sk, struct sk_buff *skb),
+            TP_PROTO(struct sock *sk, struct sk_buff *skb, __u32 ssthresh),
 
-	TP_ARGS(sk, skb),
+            TP_ARGS(sk, skb, ssthresh),
 
-	TP_STRUCT__entry(
-		/* sockaddr_in6 is always bigger than sockaddr_in */
-		__array(__u8, saddr, sizeof(struct sockaddr_in6))
-		__array(__u8, daddr, sizeof(struct sockaddr_in6))
-		__field(__u16, sport)
-		__field(__u16, dport)
-		__field(__u32, mark)
-		__field(__u16, data_len)
-		__field(__u32, snd_nxt)
-		__field(__u32, snd_una)
-		__field(__u32, snd_cwnd)
-		__field(__u32, ssthresh)
-		__field(__u32, snd_wnd)
-		__field(__u32, srtt)
-		__field(__u32, rcv_wnd)
-		__field(__u64, sock_cookie)
-	),
+            TP_STRUCT__entry(
+              /* sockaddr_in6 is always bigger than sockaddr_in */
+              __array(__u8, saddr, sizeof(struct sockaddr_in6))
+              __array(__u8, daddr, sizeof(struct sockaddr_in6))
+              __field(__u16, sport)
+              __field(__u16, dport)
+              __field(__u32, mark)
+              __field(__u16, data_len)
+              __field(__u32, snd_nxt)
+              __field(__u32, snd_una)
+              __field(__u32, snd_cwnd)
+              __field(__u32, ssthresh)
+              __field(__u32, snd_wnd)
+              __field(__u32, srtt)
+              __field(__u32, rcv_wnd)
+              __field(__u64, sock_cookie)
+              ),
 
-	TP_fast_assign(
-		const struct tcphdr *th = (const struct tcphdr *)skb->data;
-		const struct inet_sock *inet = inet_sk(sk);
-		const struct tcp_sock *tp = tcp_sk(sk);
+            TP_fast_assign(
+              const struct tcphdr *th = (const struct tcphdr *)skb->data;
+              const struct inet_sock *inet = inet_sk(sk);
+              const struct tcp_sock *tp = tcp_sk(sk);
 
-		memset(__entry->saddr, 0, sizeof(struct sockaddr_in6));
-		memset(__entry->daddr, 0, sizeof(struct sockaddr_in6));
+              memset(__entry->saddr, 0, sizeof(struct sockaddr_in6));
+              memset(__entry->daddr, 0, sizeof(struct sockaddr_in6));
 
-		TP_STORE_ADDR_PORTS(__entry, inet, sk);
+              TP_STORE_ADDR_PORTS(__entry, inet, sk);
 
-		/* For filtering use */
-		__entry->sport = ntohs(inet->inet_sport);
-		__entry->dport = ntohs(inet->inet_dport);
-		__entry->mark = skb->mark;
+              /* For filtering use */
+              __entry->sport = ntohs(inet->inet_sport);
+              __entry->dport = ntohs(inet->inet_dport);
+              __entry->mark = skb->mark;
 
-		__entry->data_len = skb->len - __tcp_hdrlen(th);
-		__entry->snd_nxt = tp->snd_nxt;
-		__entry->snd_una = tp->snd_una;
-		__entry->snd_cwnd = tp->snd_cwnd;
-		__entry->snd_wnd = tp->snd_wnd;
-		__entry->rcv_wnd = tp->rcv_wnd;
-		__entry->ssthresh = tcp_current_ssthresh(sk);
-		__entry->srtt = tp->srtt_us >> 3;
-		__entry->sock_cookie = sock_gen_cookie(sk);
-	),
+              __entry->data_len = skb->len - __tcp_hdrlen(th);
+              __entry->snd_nxt = tp->snd_nxt;
+              __entry->snd_una = tp->snd_una;
+              __entry->snd_cwnd = tp->snd_cwnd;
+              __entry->snd_wnd = tp->snd_wnd;
+              __entry->rcv_wnd = tp->rcv_wnd;
+              __entry->ssthresh = ssthresh;
+              __entry->srtt = tp->srtt_us >> 3;
+              __entry->sock_cookie = sock_gen_cookie(sk);
+              ),
 
-	TP_printk("src=%pISpc dest=%pISpc mark=%#x data_len=%d snd_nxt=%#x snd_una=%#x snd_cwnd=%u ssthresh=%u snd_wnd=%u srtt=%u rcv_wnd=%u sock_cookie=%llx",
-		  __entry->saddr, __entry->daddr, __entry->mark,
-		  __entry->data_len, __entry->snd_nxt, __entry->snd_una,
-		  __entry->snd_cwnd, __entry->ssthresh, __entry->snd_wnd,
-		  __entry->srtt, __entry->rcv_wnd, __entry->sock_cookie)
-);
+            TP_printk("src=%pISpc dest=%pISpc mark=%#x data_len=%d snd_nxt=%#x snd_una=%#x snd_cwnd=%u ssthresh=%u snd_wnd=%u srtt=%u rcv_wnd=%u sock_cookie=%llx",
+                      __entry->saddr, __entry->daddr, __entry->mark,
+                      __entry->data_len, __entry->snd_nxt, __entry->snd_una,
+                      __entry->snd_cwnd, __entry->ssthresh, __entry->snd_wnd,
+                      __entry->srtt, __entry->rcv_wnd, __entry->sock_cookie)
+  );
 
 TRACE_EVENT(tcp_ca_state_change,
 
@@ -319,6 +318,43 @@ TRACE_EVENT(tcp_ca_state_change,
                       __entry->state)
   );
 
+TRACE_EVENT(tcp_ca_event,
+
+            TP_PROTO(struct sock *sk, const enum tcp_ca_event event),
+
+            TP_ARGS(sk, event),
+
+            TP_STRUCT__entry(
+              /* sockaddr_in6 is always bigger than sockaddr_in */
+              __array(__u8, saddr, sizeof(struct sockaddr_in6))
+              __array(__u8, daddr, sizeof(struct sockaddr_in6))
+              __field(__u16, sport)
+              __field(__u16, dport)
+              __field(__u8, state)
+              __field(enum tcp_ca_event, event)
+              ),
+
+            TP_fast_assign(
+              const struct inet_sock *inet = inet_sk(sk);
+              struct inet_connection_sock *icsk = inet_csk(sk);
+
+              memset(__entry->saddr, 0, sizeof(struct sockaddr_in6));
+              memset(__entry->daddr, 0, sizeof(struct sockaddr_in6));
+
+              TP_STORE_ADDR_PORTS(__entry, inet, sk);
+
+              __entry->sport = ntohs(inet->inet_sport);
+              __entry->dport = ntohs(inet->inet_dport);
+
+              __entry->state = icsk->icsk_ca_state;
+              __entry->event = event;
+              ),
+
+            TP_printk("sport=%hu dport=%hu saddr=%pISpc daddr=%pISpc event=%d",
+                      __entry->sport, __entry->dport,
+                      __entry->saddr, __entry->daddr,
+                      __entry->event)
+  );
 
 #endif /* _TRACE_TCP_H */
 

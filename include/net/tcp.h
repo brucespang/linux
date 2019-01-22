@@ -48,6 +48,8 @@
 #include <linux/memcontrol.h>
 #include <linux/bpf-cgroup.h>
 
+#include <trace/events/tcp.h>
+
 extern struct inet_hashinfo tcp_hashinfo;
 
 extern struct percpu_counter tcp_orphan_count;
@@ -949,16 +951,6 @@ static inline bool tcp_skb_can_collapse_to(const struct sk_buff *skb)
 	return likely(!TCP_SKB_CB(skb)->eor);
 }
 
-/* Events passed to congestion control interface */
-enum tcp_ca_event {
-	CA_EVENT_TX_START,	/* first transmit when no packets in flight */
-	CA_EVENT_CWND_RESTART,	/* congestion window restart */
-	CA_EVENT_COMPLETE_CWR,	/* end of congestion recovery */
-	CA_EVENT_LOSS,		/* loss timeout */
-	CA_EVENT_ECN_NO_CE,	/* ECT set, but not CE marked */
-	CA_EVENT_ECN_IS_CE,	/* received CE marked IP packet */
-};
-
 /* Information about inbound ACK, passed to cong_ops->in_ack_event() */
 enum tcp_ca_ack_event_flags {
 	CA_ACK_SLOWPATH		= (1 << 0),	/* In slow path processing */
@@ -1097,6 +1089,8 @@ static inline void tcp_set_ca_state(struct sock *sk, const u8 ca_state)
 	if (icsk->icsk_ca_ops->set_state)
 		icsk->icsk_ca_ops->set_state(sk, ca_state);
 	icsk->icsk_ca_state = ca_state;
+
+  trace_tcp_ca_state_change(sk);
 }
 
 static inline void tcp_ca_event(struct sock *sk, const enum tcp_ca_event event)
@@ -1105,6 +1099,8 @@ static inline void tcp_ca_event(struct sock *sk, const enum tcp_ca_event event)
 
 	if (icsk->icsk_ca_ops->cwnd_event)
 		icsk->icsk_ca_ops->cwnd_event(sk, event);
+
+  trace_tcp_ca_event(sk, event);
 }
 
 /* From tcp_rate.c */
