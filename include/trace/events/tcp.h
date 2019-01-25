@@ -247,12 +247,14 @@ TRACE_EVENT(tcp_probe,
               __field(__u32, srtt)
               __field(__u32, rcv_wnd)
               __field(__u64, sock_cookie)
+              __field(__u32, ca_state)
               ),
 
             TP_fast_assign(
               const struct tcphdr *th = (const struct tcphdr *)skb->data;
               const struct inet_sock *inet = inet_sk(sk);
               const struct tcp_sock *tp = tcp_sk(sk);
+              struct inet_connection_sock *icsk = inet_csk(sk);
 
               memset(__entry->saddr, 0, sizeof(struct sockaddr_in6));
               memset(__entry->daddr, 0, sizeof(struct sockaddr_in6));
@@ -273,13 +275,15 @@ TRACE_EVENT(tcp_probe,
               __entry->ssthresh = ssthresh;
               __entry->srtt = tp->srtt_us >> 3;
               __entry->sock_cookie = sock_gen_cookie(sk);
+              __entry->ca_state = icsk->icsk_ca_state;
               ),
 
-            TP_printk("src=%pISpc dest=%pISpc mark=%#x data_len=%d snd_nxt=%#x snd_una=%#x snd_cwnd=%u ssthresh=%u snd_wnd=%u srtt=%u rcv_wnd=%u sock_cookie=%llx",
+            TP_printk("src=%pISpc dest=%pISpc mark=%#x data_len=%d snd_nxt=%#x snd_una=%#x snd_cwnd=%u ssthresh=%u snd_wnd=%u srtt=%u rcv_wnd=%u sock_cookie=%llx ca_state=%u",
                       __entry->saddr, __entry->daddr, __entry->mark,
                       __entry->data_len, __entry->snd_nxt, __entry->snd_una,
                       __entry->snd_cwnd, __entry->ssthresh, __entry->snd_wnd,
-                      __entry->srtt, __entry->rcv_wnd, __entry->sock_cookie)
+                      __entry->srtt, __entry->rcv_wnd, __entry->sock_cookie,
+                      __entry->ca_state)
   );
 
 TRACE_EVENT(tcp_ca_state_change,
