@@ -312,7 +312,7 @@ enum tcp_ca_event {
 	CA_EVENT_CWR,	/* 6: doing a cwnd reduction */
 	CA_EVENT_SLOW_START,	/* 7: in slow start */
 	CA_EVENT_APP_LIMITED,	/* 8: application limited */
-	CA_EVENT_INIT_CWR,	/* 9: undoing a cwnd reduction */
+	CA_EVENT_INIT_CWR,	/* 9: starting a cwnd reduction */
 	CA_EVENT_UNDO_CWR,	/* 10: undoing a cwnd reduction */
 	CA_EVENT_MTU_PROBE_SUCCESS,	/* 11: received an MTU probe  */
 	CA_EVENT_METRICS_INIT,	/* 12: initialized tcp_metrics (this can change snd_cwnd)  */
