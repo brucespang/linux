@@ -5505,7 +5505,7 @@ void tcp_rcv_established(struct sock *sk, struct sk_buff *skb)
 	unsigned int len = skb->len;
 
 	/* TCP congestion window tracking */
-	trace_tcp_probe(sk, skb, tcp_current_ssthresh(sk));
+	trace_tcp_probe(sk, skb, tcp_current_ssthresh(sk), tcp_packets_in_flight(tp));
 
 	tcp_mstamp_refresh(tp);
 	if (unlikely(!sk->sk_rx_dst))

@@ -227,9 +227,9 @@ TRACE_EVENT(tcp_retransmit_synack,
 
 TRACE_EVENT(tcp_probe,
 
-            TP_PROTO(struct sock *sk, struct sk_buff *skb, __u32 ssthresh),
+            TP_PROTO(struct sock *sk, struct sk_buff *skb, __u32 ssthresh, __u32 packets_in_flight),
 
-            TP_ARGS(sk, skb, ssthresh),
+            TP_ARGS(sk, skb, ssthresh, packets_in_flight),
 
             TP_STRUCT__entry(
               /* sockaddr_in6 is always bigger than sockaddr_in */
@@ -248,6 +248,8 @@ TRACE_EVENT(tcp_probe,
               __field(__u32, rcv_wnd)
               __field(__u64, sock_cookie)
               __field(__u32, ca_state)
+              __field(__u32, chrono_type)
+              __field(__u32, packets_in_flight)
               ),
 
             TP_fast_assign(
@@ -276,14 +278,16 @@ TRACE_EVENT(tcp_probe,
               __entry->srtt = tp->srtt_us >> 3;
               __entry->sock_cookie = sock_gen_cookie(sk);
               __entry->ca_state = icsk->icsk_ca_state;
+              __entry->chrono_type = tp->chrono_type;
+              __entry->packets_in_flight = packets_in_flight;
               ),
 
-            TP_printk("src=%pISpc dest=%pISpc mark=%#x data_len=%d snd_nxt=%#x snd_una=%#x snd_cwnd=%u ssthresh=%u snd_wnd=%u srtt=%u rcv_wnd=%u sock_cookie=%llx ca_state=%u",
+            TP_printk("src=%pISpc dest=%pISpc mark=%#x data_len=%d snd_nxt=%#x snd_una=%#x snd_cwnd=%u ssthresh=%u snd_wnd=%u srtt=%u rcv_wnd=%u sock_cookie=%llx ca_state=%u chrono_type=%u packets_in_flight=%u",
                       __entry->saddr, __entry->daddr, __entry->mark,
                       __entry->data_len, __entry->snd_nxt, __entry->snd_una,
                       __entry->snd_cwnd, __entry->ssthresh, __entry->snd_wnd,
                       __entry->srtt, __entry->rcv_wnd, __entry->sock_cookie,
-                      __entry->ca_state)
+                      __entry->ca_state, __entry->chrono_type, __entry->packets_in_flight)
   );
 
 TRACE_EVENT(tcp_ca_state_change,
