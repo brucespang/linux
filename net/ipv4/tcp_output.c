@@ -1778,8 +1778,8 @@ static inline unsigned int tcp_cwnd_test(const struct tcp_sock *tp,
 
 	in_flight = tcp_packets_in_flight(tp);
 	cwnd = tp->snd_cwnd;
-	if (in_flight >= cwnd)
-		return 0;
+	//if (in_flight >= cwnd)
+	//	return 0;
 
 	/* For better scheduling, ensure we have at least
 	 * 2 GSO packets in flight.
@@ -1932,12 +1932,16 @@ static bool tcp_tso_should_defer(struct sock *sk, struct sk_buff *skb,
 	in_flight = tcp_packets_in_flight(tp);
 
 	BUG_ON(tcp_skb_pcount(skb) <= 1);
-	BUG_ON(tp->snd_cwnd <= in_flight);
+	//BUG_ON(tp->snd_cwnd <= in_flight);
 
 	send_win = tcp_wnd_end(tp) - TCP_SKB_CB(skb)->seq;
 
 	/* From in_flight test above, we know that cwnd > in_flight.  */
-	cong_win = (tp->snd_cwnd - in_flight) * tp->mss_cache;
+  if (tp->snd_cwnd >= in_flight) {
+    cong_win = (tp->snd_cwnd - in_flight) * tp->mss_cache;
+  } else {
+    cong_win = 0;
+  }
 
 	limit = min(send_win, cong_win);
 
@@ -3009,8 +3013,8 @@ void tcp_xmit_retransmit_queue(struct sock *sk)
 			tp->retransmit_skb_hint = skb;
 
 		segs = tp->snd_cwnd - tcp_packets_in_flight(tp);
-		if (segs <= 0)
-			return;
+		//if (segs <= 0)
+		//	return;
 		sacked = TCP_SKB_CB(skb)->sacked;
 		/* In case tcp_shift_skb_data() have aggregated large skbs,
 		 * we need to make sure not sending too bigs TSO packets
