@@ -21,6 +21,8 @@
 #include <net/netlink.h>
 #include <net/sch_generic.h>
 #include <net/pkt_sched.h>
+
+#define CREATE_TRACE_POINTS
 #include <trace/events/net_sch.h>
 
 /*	Simple Token Bucket Filter.
