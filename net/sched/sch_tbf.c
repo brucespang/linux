@@ -21,7 +21,7 @@
 #include <net/netlink.h>
 #include <net/sch_generic.h>
 #include <net/pkt_sched.h>
-
+#include <trace/events/net_sch.h>
 
 /*	Simple Token Bucket Filter.
 	=======================================
@@ -187,7 +187,7 @@ static int tbf_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 	struct tbf_sched_data *q = qdisc_priv(sch);
 	unsigned int len = qdisc_pkt_len(skb);
 	int ret;
-
+  
 	if (qdisc_pkt_len(skb) > q->max_size) {
 		if (skb_is_gso(skb) &&
 		    skb_gso_validate_mac_len(skb, q->max_size))
@@ -203,6 +203,9 @@ static int tbf_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 
 	sch->qstats.backlog += len;
 	sch->q.qlen++;
+  
+  trace_net_sch_qlen(sch, sch->q.qlen);
+
 	return NET_XMIT_SUCCESS;
 }
 
@@ -248,6 +251,8 @@ static struct sk_buff *tbf_dequeue(struct Qdisc *sch)
 			q->ptokens = ptoks;
 			qdisc_qstats_backlog_dec(sch, skb);
 			sch->q.qlen--;
+      trace_net_sch_qlen(sch, sch->q.qlen);
+      
 			qdisc_bstats_update(sch, skb);
 			return skb;
 		}
