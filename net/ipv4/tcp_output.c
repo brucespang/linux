@@ -1777,8 +1777,8 @@ static inline unsigned int tcp_cwnd_test(const struct tcp_sock *tp,
 
 	in_flight = tcp_packets_in_flight(tp);
 	cwnd = tp->snd_cwnd;
-	//if (in_flight >= cwnd)
-	//	return 0;
+	if (in_flight >= cwnd)
+		return 1;
 
 	/* For better scheduling, ensure we have at least
 	 * 2 GSO packets in flight.
@@ -1939,7 +1939,7 @@ static bool tcp_tso_should_defer(struct sock *sk, struct sk_buff *skb,
   if (tp->snd_cwnd >= in_flight) {
     cong_win = (tp->snd_cwnd - in_flight) * tp->mss_cache;
   } else {
-    cong_win = 0;
+    cong_win = tp->mss_cache;
   }
 
 	limit = min(send_win, cong_win);
