@@ -48,6 +48,7 @@
 #include <linux/hash.h>
 #include <linux/prefetch.h>
 #include <linux/vmalloc.h>
+#include <linux/random.h>
 #include <net/netlink.h>
 #include <net/pkt_sched.h>
 #include <net/sock.h>
@@ -341,6 +342,15 @@ static void flow_queue_add(struct fq_flow *flow, struct sk_buff *skb)
 	flow->tail = skb;
 }
 
+static u64 fq_log3(u64 x) {
+  int log = -1;
+  while (x) {
+    log++;
+    x = x / 3;
+   }
+   return log;
+}
+
 static int fq_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 		      struct sk_buff **to_free)
 {
@@ -510,6 +520,16 @@ begin:
 
 		if (likely(rate))
 			len = div64_ul(len, rate);
+
+    /*
+     * Randomize the sending time.
+     * This is exponentially distributed with mean "len" and
+     * equivalent to log(1-U)/(1/len). fq_log3 is base 3 which is about e,
+     * and 40 is approximately log_3(max u64)
+     */
+    u64 rand = (prandom_u32() << 32) | prandom_u32();
+    len = len*(40 - fq_log3(rand));
+
 		/* Since socket rate can change later,
 		 * clamp the delay to 1 second.
 		 * Really, providers of too big packets should be fixed !
