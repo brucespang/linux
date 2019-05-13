@@ -353,8 +353,9 @@ static u32 fq_rand_exponential(u32 mean, u32 n) {
   if (n <= 1) {
     return min;
   }
-  
-  for (u32 i = 0; i < n - 1; i++) {
+
+  u32 i = 0;
+  for (i = 0; i < n - 1; i++) {
     u32 x = prandom_u32() % (scale*mean);
     if (x < min) {
       min = x;
