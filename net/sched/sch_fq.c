@@ -342,13 +342,25 @@ static void flow_queue_add(struct fq_flow *flow, struct sk_buff *skb)
 	flow->tail = skb;
 }
 
-static u64 fq_log3(u64 x) {
-  int log = -1;
-  while (x) {
-    log++;
-    x = x / 3;
-   }
-   return log;
+/* Generates a random number distributed approximately
+ * as Exponential(1/mean). Uses the fact that n times the minimum
+ * of n uniform random variables is approximately exponential.
+ */
+static u32 fq_rand_exponential(u32 mean, u32 n) {
+  u32 scale = 100;
+  
+  u32 min = prandom_u32() % (scale*mean);
+  if (n <= 1) {
+    return min;
+  }
+  
+  for (u32 i = 0; i < n - 1; i++) {
+    u32 x = prandom_u32() % (scale*mean);
+    if (x < min) {
+      min = x;
+    }
+  }
+  return (n*min)/scale;
 }
 
 static int fq_enqueue(struct sk_buff *skb, struct Qdisc *sch,
@@ -523,12 +535,8 @@ begin:
 
     /*
      * Randomize the sending time.
-     * This is exponentially distributed with mean "len" and
-     * equivalent to log(1-U)/(1/len). fq_log3 is base 3 which is about e,
-     * and 40 is approximately log_3(max u64)
      */
-    u64 rand = (prandom_u32() << 32) | prandom_u32();
-    len = len*(40 - fq_log3(rand));
+    len = fq_rand_exponential(len, 8);
 
 		/* Since socket rate can change later,
 		 * clamp the delay to 1 second.
