@@ -30,6 +30,7 @@
 #include <linux/cryptohash.h>
 #include <linux/kref.h>
 #include <linux/ktime.h>
+#include <linux/random.h>
 
 #include <net/inet_connection_sock.h>
 #include <net/inet_timewait_sock.h>
@@ -1253,7 +1254,14 @@ static inline unsigned long tcp_pacing_delay(const struct sock *sk,
 
 	pacing_delay -= tcp_sk(sk)->tcp_clock_cache;
 
-	return pacing_delay > 0 ? nsecs_to_jiffies(pacing_delay) : 0;
+  if (pacing_delay > 0) {
+    pacing_delay = (s64)((((u64)prandom_u32() << 32) | prandom_u32()) % (2*(u64)pacing_delay));
+
+    return nsecs_to_jiffies(pacing_delay);
+  } else {
+    return 0;
+  }
+           
 }
 
 static inline void tcp_reset_xmit_timer(struct sock *sk,
