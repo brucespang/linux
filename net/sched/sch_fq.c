@@ -342,28 +342,6 @@ static void flow_queue_add(struct fq_flow *flow, struct sk_buff *skb)
 	flow->tail = skb;
 }
 
-/* Generates a random number distributed approximately
- * as Exponential(1/mean). Uses the fact that n times the minimum
- * of n uniform random variables is approximately exponential.
- */
-static u32 fq_rand_exponential(u32 mean, u32 n) {
-  u32 scale = 100;
-  
-  u32 min = prandom_u32() % (scale*mean);
-  if (n <= 1) {
-    return min;
-  }
-
-  u32 i = 0;
-  for (i = 0; i < n - 1; i++) {
-    u32 x = prandom_u32() % (scale*mean);
-    if (x < min) {
-      min = x;
-    }
-  }
-  return (n*min)/scale;
-}
-
 static int fq_enqueue(struct sk_buff *skb, struct Qdisc *sch,
 		      struct sk_buff **to_free)
 {
@@ -534,10 +512,14 @@ begin:
 		if (likely(rate))
 			len = div64_ul(len, rate);
 
-    /*
-     * Randomize the sending time.
-     */
-    len = fq_rand_exponential(len, 8);
+		/*
+		 * Pick a uniformly random sending time in the range [0, 2*len)
+		 * This makes the aggregate departure process poisson since the
+		 * minimum of independent uniform random variables is
+		 * exponentially distributed.
+		 */
+		u64 rand = ((u64)prandom_u32() << 32) | prandom_u32();
+		len = rand % (2*len);
 
 		/* Since socket rate can change later,
 		 * clamp the delay to 1 second.
