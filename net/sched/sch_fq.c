@@ -518,8 +518,7 @@ begin:
 		 * minimum of independent uniform random variables is
 		 * exponentially distributed.
 		 */
-		u64 rand = ((u64)prandom_u32() << 32) | prandom_u32();
-		len = rand % (2*len);
+		len = (((u64)prandom_u32() << 32) | prandom_u32()) % (2*len);
 
 		/* Since socket rate can change later,
 		 * clamp the delay to 1 second.
