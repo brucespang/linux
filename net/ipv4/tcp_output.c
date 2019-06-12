@@ -993,8 +993,10 @@ static void tcp_update_skb_after_send(struct sock *sk, struct sk_buff *skb,
 		 */
 		if (rate != ~0UL && rate && tp->data_segs_out >= 10) {
 			u64 len_ns = div64_ul((u64)skb->len * NSEC_PER_SEC, rate);
-      
-      len_ns = (u64)((((u64)prandom_u32() << 32) | prandom_u32()) % (2*(u64)len_ns));
+
+			if (sock_net(sk)->ipv4.sysctl_tcp_pacing_randomize) {
+				len_ns = (u64)((((u64)prandom_u32() << 32) | prandom_u32()) % (2*(u64)len_ns));
+			}
       
 			u64 credit = tp->tcp_wstamp_ns - prior_wstamp;
 
