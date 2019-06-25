@@ -984,7 +984,7 @@ static void tcp_update_skb_after_send(struct sock *sk, struct sk_buff *skb,
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 
-	if (sk->sk_pacing_status != SK_PACING_NONE) {
+	/* if (sk->sk_pacing_status != SK_PACING_NONE) { */
 		unsigned long rate = sk->sk_pacing_rate;
 
 		/* Original sch_fq does not pace first 10 MSS
@@ -998,13 +998,13 @@ static void tcp_update_skb_after_send(struct sock *sk, struct sk_buff *skb,
 				len_ns = (u64)((((u64)prandom_u32() << 32) | prandom_u32()) % (2*(u64)len_ns));
 			}
       
-			u64 credit = tp->tcp_wstamp_ns - prior_wstamp;
+			/* u64 credit = tp->tcp_wstamp_ns - prior_wstamp; */
 
-			/* take into account OS jitter */
-			len_ns -= min_t(u64, len_ns / 2, credit);
+			/* /\* take into account OS jitter *\/ */
+			/* len_ns -= min_t(u64, len_ns / 2, credit); */
 			tp->tcp_wstamp_ns += len_ns;
 		}
-	}
+	/* } */
 	list_move_tail(&skb->tcp_tsorted_anchor, &tp->tsorted_sent_queue);
 }
 
